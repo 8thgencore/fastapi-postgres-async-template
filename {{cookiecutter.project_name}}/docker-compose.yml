@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   web:
-    container_name: ${APP_CONTAINER_NAME:-yuno-{{cookiecutter.project_name}}-container}
+    container_name: ${APP_CONTAINER_NAME:-{{cookiecutter.project_name}}-app-container}
     build:
       context: ./src
       dockerfile: ./compose/local/Dockerfile
