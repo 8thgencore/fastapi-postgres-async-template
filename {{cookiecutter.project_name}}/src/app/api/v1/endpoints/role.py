@@ -1,10 +1,9 @@
-from uuid import UUID
-
 from fastapi import APIRouter, Depends, status
 from fastapi_pagination import Params
 
 from app import crud
 from app.api import deps
+from app.deps import role_deps
 from app.models.role_model import Role
 from app.models.user_model import User
 from app.schemas.response_schema import (
@@ -17,7 +16,6 @@ from app.schemas.response_schema import (
 from app.schemas.role_schema import IRoleCreate, IRoleEnum, IRoleRead, IRoleUpdate
 from app.utils.exceptions import (
     ContentNoChangeException,
-    IdNotFoundException,
     NameExistException,
 )
 
@@ -54,32 +52,24 @@ async def get_roles_list(
 
 @router.get("/{role_id}", status_code=status.HTTP_200_OK)
 async def get_role_by_id(
-    role_id: UUID,
+    role: Role = Depends(role_deps.get_role_by_id),  # role_id
     current_user: User = Depends(deps.get_current_user()),
 ) -> IGetResponseBase[IRoleRead]:
     """
     Gets a role by its id
     """
-    role = await crud.role.get(id=role_id)
-    if role:
-        return create_response(data=role)
-    else:
-        raise IdNotFoundException(Role, id=role_id)
+    return create_response(data=role)
 
 
 @router.put("/{role_id}")
 async def update_permission(
-    role_id: UUID,
     role: IRoleUpdate,
+    current_role: Role = Depends(role_deps.get_role_by_id),  # role_id
     current_user: User = Depends(deps.get_current_user(required_roles=[IRoleEnum.admin])),
 ) -> IPutResponseBase[IRoleRead]:
     """
     Updates the permission of a role by its id
     """
-    current_role = await crud.role.get(id=role_id)
-    if not current_role:
-        raise IdNotFoundException(Role, id=role_id)
-
     if current_role.name == role.name and current_role.description == role.description:
         raise ContentNoChangeException()
 
