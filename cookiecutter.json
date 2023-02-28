@@ -2,5 +2,8 @@
     "project_name": "Base Project",
     "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '-').replace('_', '-') }}",
     "project_short_description": "New base project",
-    "version": "0.0.1"
+    "version": "0.0.1",
+
+    "author_name": "admin",
+    "author_email": "admin@example.com"
 }
