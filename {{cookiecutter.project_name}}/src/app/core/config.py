@@ -10,7 +10,7 @@ from app.core import logging
 
 class Settings(BaseSettings):
     # Application
-    APP_TITLE: str = "{{cookiecutter.project_name}}"
+    APP_TITLE: str = "{{cookiecutter.project_slug}}"
     APP_VERSION: str = "1.0.0"
     APP_DESCRIPTION: str = "My app"
 

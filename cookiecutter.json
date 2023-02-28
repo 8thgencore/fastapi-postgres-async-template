@@ -1,3 +1,6 @@
 {
-    "project_name": "my_project_name"
+    "project_name": "Base Project",
+    "project_slug": "{{ cookiecutter.project_slug.lower().replace(' ', '-').replace('_', '-') }}",
+    "project_short_description": "New base project",
+    "version": "0.0.1"
 }

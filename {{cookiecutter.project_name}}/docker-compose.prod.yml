@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   web:
-    container_name: ${APP_CONTAINER_NAME:-{{cookiecutter.project_name}}-app-container}
+    container_name: ${APP_CONTAINER_NAME:-{{cookiecutter.project_slug}}-app-container}
     build:
       context: ./src
       dockerfile: ./compose/local/Dockerfile
@@ -18,24 +18,28 @@ services:
       - db
 
   db:
-    container_name: ${DB_CONTAINER_NAME:-{{cookiecutter.project_name}}-db-container}
+    container_name: ${DB_CONTAINER_NAME:-{{cookiecutter.project_slug}}-db-container}
     image: postgres:14-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    expose: 
+    expose:
       - 5432
     environment:
       - POSTGRES_USER=${DB_USER:-postgres}
       - POSTGRES_PASSWORD=${DB_PASS:-postgres}
       - POSTGRES_DB=${DB_NAME:-db}
     healthcheck:
-      test: [ "CMD", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      test:
+        [
+          "CMD",
+          "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis-server:
-    container_name: ${REDIS_CONTAINER_NAME:-{{cookiecutter.project_name}}-redis-container}
+    container_name: ${REDIS_CONTAINER_NAME:-{{cookiecutter.project_slug}}-redis-container}
     image: "redis:alpine"
     command:
       - /bin/sh
