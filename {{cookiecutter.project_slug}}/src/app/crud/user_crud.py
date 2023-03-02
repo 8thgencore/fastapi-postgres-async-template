@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional
 
-from fastapi_async_sqlalchemy import db
 from pydantic.networks import EmailStr
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -15,21 +14,21 @@ class CRUDUser(CRUDBase[User, IUserCreate, IUserUpdate]):
     async def get_by_email(
         self, *, email: str, db_session: Optional[AsyncSession] = None
     ) -> Optional[User]:
-        db_session = db_session or db.session
+        db_session = db_session or super().get_db().session
         user = await db_session.execute(select(User).where(User.email == email))
         return user.scalar_one_or_none()
 
     async def get_by_username(
         self, *, username: str, db_session: Optional[AsyncSession] = None
     ) -> Optional[User]:
-        db_session = db_session or db.session
+        db_session = db_session or super().get_db().session
         user = await db_session.execute(select(User).where(User.username == username))
         return user.scalar_one_or_none()
 
     async def create_with_role(
         self, *, obj_in: IUserCreate, db_session: Optional[AsyncSession] = None
     ) -> User:
-        db_session = db_session or db.session
+        db_session = db_session or super().get_db().session
         db_obj = User.from_orm(obj_in)
         db_obj.hashed_password = get_password_hash(obj_in.password)
 
@@ -41,12 +40,14 @@ class CRUDUser(CRUDBase[User, IUserCreate, IUserUpdate]):
     async def update_is_active(
         self, *, db_obj: List[User], obj_in: int | str | Dict[str, Any]
     ) -> User | None:
+        db_session = super().get_db().session
+
         response = None
         for x in db_obj:
             x.is_active = obj_in.is_active
-            db.session.add(x)
-            await db.session.commit()
-            await db.session.refresh(x)
+            db_session.add(x)
+            await db_session.commit()
+            await db_session.refresh(x)
             response.append(x)
         return response
 
