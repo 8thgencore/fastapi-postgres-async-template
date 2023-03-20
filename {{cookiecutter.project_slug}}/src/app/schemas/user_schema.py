@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Optional
 from uuid import UUID
 
 from app.models.user_model import UserBase
@@ -8,7 +7,7 @@ from app.utils.partial import optional
 
 
 class IUserCreate(UserBase):
-    password: Optional[str]
+    password: str | None
 
     class Config:
         hashed_password = None
@@ -22,7 +21,7 @@ class IUserUpdate(UserBase):
 
 class IUserRead(UserBase):
     id: UUID
-    role: Optional[IRoleRead] = None
+    role: IRoleRead | None = None
 
 
 class IUserStatus(str, Enum):

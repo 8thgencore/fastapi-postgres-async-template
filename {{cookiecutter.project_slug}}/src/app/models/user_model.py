@@ -13,15 +13,15 @@ class UserBase(SQLModel):
     last_name: str
     username: str = Field(nullable=True, sa_column_kwargs={"unique": True})
     email: EmailStr = Field(nullable=True, index=True, sa_column_kwargs={"unique": True})
-    birthdate: Optional[datetime] = Field(
+    birthdate: datetime | None = Field(
         sa_column=Column(DateTime(timezone=True), nullable=True)
     )  # birthday with timezone
-    phone: Optional[str]
-    role_id: Optional[UUID] = Field(default=None, foreign_key="Role.id")
+    phone: str | None
+    role_id: UUID | None = Field(default=None, foreign_key="Role.id")
 
 
 class User(BaseUUIDModel, UserBase, table=True):
-    hashed_password: Optional[str] = Field(nullable=False, index=True)
+    hashed_password: str | None = Field(nullable=False, index=True)
     role: Optional["Role"] = Relationship(  # noqa: F821
         back_populates="users",
         sa_relationship_kwargs={"lazy": "joined"},

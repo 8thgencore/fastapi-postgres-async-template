@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Optional
 from uuid import UUID
 
 from redis.asyncio import Redis
@@ -13,7 +12,7 @@ async def add_token_to_redis(
     user: User,
     token: str,
     token_type: TokenType,
-    expire_time: Optional[int] = None,
+    expire_time: int | None = None,
 ):
     token_key = f"user:{user.id}:{token_type}"
     valid_tokens = await get_valid_tokens(redis_client, user.id, token_type)

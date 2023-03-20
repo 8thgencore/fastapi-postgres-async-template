@@ -1,6 +1,6 @@
 from datetime import datetime, time, timedelta
 from functools import lru_cache
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from loguru import logger
 from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
@@ -38,10 +38,10 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str
     REDIS_POOL_SIZE: str
 
-    ASYNC_DB_URI: Optional[str]
+    ASYNC_DB_URI: str | None
 
     @validator("ASYNC_DB_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    def assemble_db_connection(cls, v: str | None, values: dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
         return PostgresDsn.build(
@@ -53,10 +53,10 @@ class Settings(BaseSettings):
             path=f"/{values.get('DB_NAME') or ''}",
         )
 
-    BACKEND_CORS_ORIGINS: List[str] | List[AnyHttpUrl]
+    BACKEND_CORS_ORIGINS: list[str] | list[AnyHttpUrl]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v: str | List[str]) -> List[str] | str:
+    def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, (list, str)):
@@ -74,14 +74,14 @@ class LogSettings(BaseSettings):
     LOG_RETENTION: timedelta
 
     @validator("LOG_ROTATION", pre=True)
-    def assemble_log_rotation(cls, v: Optional[str]) -> time:
+    def assemble_log_rotation(cls, v: str | None) -> time:
         if isinstance(v, str):
             return datetime.strptime(v, "%H:%M").time()
         else:
             return datetime.strptime("00:00", "%H:%M").time()
 
     @validator("LOG_RETENTION", pre=True)
-    def assemble_log_retention(cls, v: Optional[int]) -> timedelta:
+    def assemble_log_retention(cls, v: int | None) -> timedelta:
         if isinstance(v, int):
             return timedelta(days=v)
         else:
@@ -92,13 +92,13 @@ class LogSettings(BaseSettings):
         # env_file = os.path.expanduser("~/.env")
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> BaseSettings:
     logger.info("Loading config settings from the environment...")
     return Settings()
 
 
-@lru_cache()
+@lru_cache
 def load_log_config():
     log_settings = LogSettings()
     logging.setup(
