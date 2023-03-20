@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "{{ cookiecutter.project_name }}"
-version = "{{ cookiecutter.version }}"
+version = "1.0.0"
 description = "{{ cookiecutter.project_short_description }}"
 authors = ["{{ cookiecutter.author_name }} <{{ cookiecutter.author_email }}>"]
 
 [tool.black]
 line-length = 99
-target-version = ["py37", "py38", "py39", "py310"]
+target-version = ["py310", "py311"]
 exclude = "((.eggs | .git | .pytest_cache | build | dist))"
 
 
@@ -29,30 +29,39 @@ ignore = [
     "C901", # too complex
 ]
 
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
 [tool.poetry.dependencies]
+# Python version
 python = "^3.11"
 # FastApi and Extencions
-fastapi = { extras = ["all"], version = "^0.92.0" }
-alembic = "^1.9.4"
-asyncpg = "^0.27.0"
-sqlmodel = "^0.0.8"
-fastapi-async-sqlalchemy = "^0.3.12"
+fastapi = { extras = ["all"], version = "^0.94.1" }
 fastapi-cache2 = { extras = ["redis"], version = "^0.2.1" }
 fastapi-pagination = { extras = ["sqlalchemy"], version = "^0.11.4" }
+fastapi-async-sqlalchemy = "^0.3.14"
 python-multipart = "^0.0.6"
+# ASGI server
+uvicorn = "^0.21.1"
+gunicorn = "^20.1.0"
+# Database
+sqlmodel = "^0.0.8"
+alembic = "^1.10.2"
+asyncpg = "^0.27.0"
 # Logger
 loguru = "^0.6.0"
 # Cryptography
 python-jose = { extras = ["cryptography"], version = "^3.3.0" }
 passlib = { extras = ["bcrypt"], version = "^1.7.4" }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = "^1.0.1"
 yesqa = "^1.4.0"
 httpx = "^0.23.3"
 pytest = "^7.2.1"
 black = "^23.1.0"
-ruff = "^0.0.253"
+ruff = "^0.0.257"
 
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["F401"]
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
