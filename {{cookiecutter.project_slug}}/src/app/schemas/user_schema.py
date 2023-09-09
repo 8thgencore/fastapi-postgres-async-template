@@ -2,7 +2,6 @@ from enum import Enum
 from uuid import UUID
 
 from app.models.user_model import UserBase
-from app.schemas.role_schema import IRoleRead
 from app.utils.partial import optional
 
 
@@ -21,7 +20,6 @@ class IUserUpdate(UserBase):
 
 class IUserRead(UserBase):
     id: UUID
-    role: IRoleRead | None = None
 
 
 class IUserStatus(str, Enum):

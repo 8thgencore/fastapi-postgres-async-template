@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta
+from enum import Enum
 from functools import lru_cache
 from typing import Any
 
@@ -8,8 +9,17 @@ from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
 from app.core import logging
 
 
+class ModeEnum(str, Enum):
+    development = "development"
+    production = "production"
+    testing = "testing"
+
+
 class Settings(BaseSettings):
-    # Application
+    # --------------------------------------------------
+    # > Application
+    # --------------------------------------------------
+    MODE: ModeEnum = ModeEnum.development
     APP_TITLE: str = "{{cookiecutter.project_slug}}"
     APP_VERSION: str = "1.0.0"
     APP_DESCRIPTION: str = "My app"
@@ -24,7 +34,9 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 180  # 180 days
     SECRET_KEY: str
 
-    # Postgres
+    # --------------------------------------------------
+    # > Postgres
+    # --------------------------------------------------
     DB_SCHEME: str
     DB_USER: str
     DB_PASSWORD: str
@@ -32,7 +44,9 @@ class Settings(BaseSettings):
     DB_PORT: int | str
     DB_NAME: str
 
-    # Redis
+    # --------------------------------------------------
+    # > Redis
+    # --------------------------------------------------
     REDIS_HOST: str
     REDIS_PORT: str
     REDIS_PASSWORD: str
@@ -53,6 +67,9 @@ class Settings(BaseSettings):
             path=f"/{values.get('DB_NAME') or ''}",
         )
 
+    # --------------------------------------------------
+    # > Misc
+    # --------------------------------------------------
     BACKEND_CORS_ORIGINS: list[str] | list[AnyHttpUrl]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)

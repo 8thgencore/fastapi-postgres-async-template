@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query, status
 from fastapi_pagination import Params
+from loguru import logger
 
 from app import crud
 from app.api import deps
@@ -26,26 +27,25 @@ router = APIRouter()
 async def get_my_data(
     current_user: User = Depends(deps.get_current_user()),
 ) -> IGetResponseBase[IUserRead]:
-    """
-    Gets my user profile information
-    """
+    """Gets my user profile information."""
+
     return create_response(data=current_user)
 
 
 @router.put("")
-async def update_self_user(
+async def update_my_data(
     user: IUserUpdate,
     current_user: User = Depends(deps.get_current_user()),
 ) -> IPutResponseBase[IUserRead]:
-    """
-    Update self user parameter
-    """
+    """Update my user profile information."""
     if current_user.email != user.email:
         await user_deps.email_exists(user=user)
     if current_user.username != user.username:
         await user_deps.username_exists(user=user)
 
     user_updated = await crud.user.update(obj_new=user, obj_current=current_user)
+    logger.info(f"User '{current_user.id}' updated profile information")
+
     return create_response(data=user_updated)
 
 
@@ -54,14 +54,17 @@ async def create_user(
     user: IUserCreate = Depends(user_deps.user_exists),
     current_user: User = Depends(deps.get_current_user(required_roles=[IRoleEnum.admin])),
 ) -> IPostResponseBase[IUserRead]:
-    """
-    Creates a new user
+    """Creates a new user.
+
+    Required roles:
+      - admin
     """
     role = await crud.role.get(id=user.role_id)
     if not role:
         raise IdNotFoundException(Role, id=user.role_id)
 
     user = await crud.user.create_with_role(obj_in=user)
+
     return create_response(data=user)
 
 
@@ -70,10 +73,9 @@ async def read_users_list(
     params: Params = Depends(),
     current_user: User = Depends(deps.get_current_user()),
 ) -> IGetResponsePaginated[IUserRead]:
-    """
-    Retrieve users. Requires admin or manager role
-    """
+    """Retrieve users. Requires admin or manager role."""
     users = await crud.user.get_multi_paginated(params=params)
+
     return create_response(data=users)
 
 
@@ -87,14 +89,13 @@ async def get_user_list_order_by_created_at(
     params: Params = Depends(),
     current_user: User = Depends(deps.get_current_user()),
 ) -> IGetResponsePaginated[IUserRead]:
-    """
-    Gets a paginated list of users ordered by created datetime
-    """
+    """Gets a paginated list of users ordered by created datetime."""
     users = await crud.user.get_multi_paginated_ordered(
         params=params,
         order=order,
         order_by="created_at",
     )
+
     return create_response(data=users)
 
 
@@ -104,8 +105,7 @@ async def get_user_by_id(
     current_user: User = Depends(deps.get_current_user()),
 ) -> IGetResponseBase[IUserRead]:
     """
-    Gets a user by his/her id
-    """
+    Gets a user by his/her id."""
     return create_response(data=user)
 
 
@@ -115,8 +115,10 @@ async def update_user_by_id(
     updated_user: User = Depends(user_deps.is_valid_user),  # user_id
     current_user: User = Depends(deps.get_current_user(required_roles=[IRoleEnum.admin])),
 ) -> IPutResponseBase[IUserRead]:
-    """
-    Update a user by his/her id
+    """Update a user by his/her id.
+
+    Required roles:
+      - admin
     """
     if updated_user.email != user.email:
         await user_deps.email_exists(user=user)
@@ -124,6 +126,7 @@ async def update_user_by_id(
         await user_deps.username_exists(user=user)
 
     user_updated = await crud.user.update(obj_new=user, obj_current=updated_user)
+
     return create_response(data=user_updated)
 
 
@@ -132,11 +135,14 @@ async def remove_user_by_id(
     user: User = Depends(user_deps.is_valid_user),  # user_id
     current_user: User = Depends(deps.get_current_user(required_roles=[IRoleEnum.admin])),
 ) -> IDeleteResponseBase[IUserRead]:
-    """
-    Delete a user by his/her id
+    """Delete a user by his/her id.
+
+    Required roles:
+      - admin
     """
     if current_user.id == user.id:
         raise UserSelfDeleteException()
 
     user = await crud.user.remove(id=user.id)
+
     return create_response(data=user, message="User removed")

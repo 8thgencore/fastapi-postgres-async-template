@@ -2,6 +2,8 @@
 Main FastAPI app instance declaration
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_async_sqlalchemy import SQLAlchemyMiddleware
@@ -15,6 +17,18 @@ from app.api.v1.api import api_router as api_router_v1
 from app.core.config import load_log_config, settings
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting up...")
+    redis_client = await get_redis_client()
+    FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
+
+    yield
+
+    logger.info("Shutting down...")
+    await FastAPICache.clear()
+
+
 # Initialize the application
 def create_application() -> FastAPI:
     load_log_config()
@@ -26,6 +40,7 @@ def create_application() -> FastAPI:
         description=settings.APP_DESCRIPTION,
         openapi_url="/openapi.json",
         docs_url="/",
+        lifespan=lifespan,
     )
 
     app.add_middleware(
@@ -49,23 +64,14 @@ def create_application() -> FastAPI:
             allow_headers=["*"],
         )
 
+    # Include the API router
     app.include_router(api_router_v1, prefix=settings.API_PREFIX)
+
+    # Add pagination to the application
     add_pagination(app)
 
     return app
 
 
+# Create the application
 app = create_application()
-
-
-@app.on_event("startup")
-async def startup_event():
-    redis_client = await get_redis_client()
-    FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
-    logger.info("Starting up...")
-    # init_db(app)
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("Shutting down...")
